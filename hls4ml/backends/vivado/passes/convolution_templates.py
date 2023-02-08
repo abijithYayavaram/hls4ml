@@ -10,9 +10,11 @@ conv_mult_config_template = """struct config{index}_mult : nnet::dense_config {{
     static const unsigned n_out = {n_out};
     static const unsigned reuse_factor = {reuse};
     static const unsigned strategy = nnet::{strategy};
+    static const bool merged_act = {merged_act};
     typedef {accum_t.name} accum_t;
     typedef {bias_t.name} bias_t;
     typedef {weight_t.name} weight_t;
+    typedef {out_t} out_t;
     template<class x_T, class y_T>
     using product = nnet::product::{product_type}<x_T, y_T>;
 }};\n"""
@@ -66,6 +68,8 @@ class Conv1DConfigTemplate(LayerConfigTemplate):
         mult_params['n_in'] = node.get_attr('n_chan') * node.get_attr('filt_width')
         mult_params['n_out'] = node.get_attr('n_filt')
         mult_params['product_type'] = get_backend('vivado').product_type(node.get_input_variable().type.precision, node.get_weights('weight').type.precision)
+        mult_params['merged_act'] = "true" if node.get_merged_act() else "false"
+        mult_params['out_t'] = node.get_output_variable().type.name
         mult_config = self.mult_template.format(**mult_params)
 
         return mult_config + '\n' + conv_config
@@ -139,6 +143,8 @@ class Conv2DConfigTemplate(LayerConfigTemplate):
         mult_params['n_in'] = node.get_attr('n_chan') * node.get_attr('filt_height') * node.get_attr('filt_width')
         mult_params['n_out'] = node.get_attr('n_filt')
         mult_params['product_type'] = get_backend('vivado').product_type(node.get_input_variable().type.precision, node.get_weights('weight').type.precision)
+        mult_params['merged_act'] = "true" if node.get_merged_act() else "false"
+        mult_params['out_t'] = node.get_output_variable().type.name
         mult_config = self.mult_template.format(**mult_params)
 
         return mult_config + '\n' + conv_config

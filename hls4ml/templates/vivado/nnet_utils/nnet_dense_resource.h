@@ -93,12 +93,31 @@ void dense_resource_rf_leq_nin(
         }
     }
 
-    // Cast to "res_t" type
-    Result:
-    for (int ires = 0; ires < CONFIG_T::n_out; ires++) {
-        #pragma HLS UNROLL
-        res[ires] = cast<data_T, res_T, CONFIG_T>(acc[ires]);
-    }
+// TODO: Convert this block of code into a function 'template<class data_T, class CONFIG_T> using activation = nnet::some_activation_or_nop<data_T, CONFIG_T>;'
+
+//     // Cast to "res_t" type
+//     Result:
+//     if  ((CONFIG_T::merged_act)) { // dense and activation are merged
+//         for (int ires = 0; ires < CONFIG_T::n_out; ires++) {
+//             #pragma HLS UNROLL
+//             typename CONFIG_T::out_t act = cast<data_T, typename CONFIG_T::out_t, CONFIG_T>(acc[ires]);
+//             // -> Need to understand the comment on the PR
+//             // now what? Should we have an 'operator' which performs the activation? 
+//             // Should this operator have a switch statement?
+//             // How will we know which activation it is? Can we store it in config?
+//         }
+//     }
+//     else { // dense and activation are not merged
+//         for (int ires = 0; ires < CONFIG_T::n_out; ires++) {
+//             #pragma HLS UNROLL
+//             // why do we use out_t? Can't we just use res_t?
+//             typename CONFIG_T::out_t act = cast<data_T, typename CONFIG_T::out_t, CONFIG_T>(acc[ires]);
+//             // nop
+//             res[ires] = act;
+
+//             //that's it...right?
+//         }
+//     }
 }
 
 template<class data_T, class res_T, typename CONFIG_T>
