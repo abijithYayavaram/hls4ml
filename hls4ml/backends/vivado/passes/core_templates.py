@@ -41,6 +41,10 @@ class DenseConfigTemplate(LayerConfigTemplate):
         params['merged_act'] = "true" if node.get_merged_act() else "false"
         params['out_t'] = node.get_output_variable().type.name
         
+        print("********************************************************")
+        print(node.get_output_variable().type)
+        print(params['out_t'])
+        
         return self.template.format(**params)
 
 class DenseFunctionTemplate(FunctionCallTemplate):
