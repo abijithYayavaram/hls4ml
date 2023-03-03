@@ -5,6 +5,7 @@ class MergeAct(OptimizerPass):
     def match(self, node):
         backends = ['VivadoAccelerator', 'Vivado']
         supported_layers = ['Dense'] 	#, 'Conv2D', 'Conv2DBatchNorm'
+        supported_activations = ['relu', 'sigmoid', 'softmax', 'tanh']
         # By the time this optimization pass runs, the Layer nodes' class names
         # have been prepended with the name of the backend, e.g., a Conv2D
         # layer is renamed VivadoAcceleratorConv2D. Thus, we strip the backend
@@ -17,13 +18,17 @@ class MergeAct(OptimizerPass):
 
         is_match = input_node_class in supported_layers
         # activation layers are of class Activation
-        is_match = is_match and (curr_node_class == 'Activation')
+        # is_match = is_match and (curr_node_class == 'Activation') 
+        is_match = is_match and (node.get_attr('activation') in supported_activations)
+    
         return is_match
+    
 
     def transform(self, model, node):
         # Merge ReLU and Convolution/Dense layer
         previous_node = node.get_input_node()
-        previous_node.set_merged_act(True) # Turn on merged_act flag for this Conv/Dense layer 
+        previous_node.set_merged_act(True) # Turn on merged_act flag for this Conv/Dense layer
+        print("******** Merged activation ********")
         if 'Conv2D' in previous_node.__class__.__name__:
             if previous_node.get_attr('data_format') == 'channels_last':
                 shape = [previous_node.attributes['out_height'], previous_node.attributes['out_width'], previous_node.attributes['n_filt']]

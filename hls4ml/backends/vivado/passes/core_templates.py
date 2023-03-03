@@ -40,10 +40,7 @@ class DenseConfigTemplate(LayerConfigTemplate):
         params['product_type'] = get_backend('vivado').product_type(node.get_input_variable().type.precision, node.get_weights('weight').type.precision)
         params['merged_act'] = "true" if node.get_merged_act() else "false"
         params['out_t'] = node.get_output_variable().type.name
-        
-        print("********************************************************")
-        print(node.get_output_variable().type)
-        print(params['out_t'])
+        params['activation_t'] = node.get_output_variable.get_attr('activation') if node.get_merged_act() else "none"
         
         return self.template.format(**params)
 
