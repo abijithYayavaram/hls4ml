@@ -13,7 +13,6 @@ dense_config_template = """struct config{index} : nnet::dense_config {{
     static const unsigned reuse_factor = {reuse};
     static const unsigned n_zeros = {nzeros};
     static const unsigned n_nonzeros = {nonzeros};
-    static const bool merged_act = {merged_act};
     static const bool store_weights_in_bram = false;
     typedef {accum_t.name} accum_t;
     typedef {bias_t.name} bias_t;
@@ -24,6 +23,11 @@ dense_config_template = """struct config{index} : nnet::dense_config {{
     using product = nnet::product::{product_type}<x_T, y_T>;
 }};\n"""
 
+dense_merge_template = """ static const bool merged_act = {merged_act};
+    template<class x_T, class y_T, typename CONFIG_T>
+    using activation = nnet::{activation}<x_T, y_T, CONFIG_T>;
+\n """
+
 dense_function_template = 'nnet::dense<{input_t}, {output_t}, {config}>({input}, {output}, {w}, {b});'
 
 dense_include_list = ['nnet_utils/nnet_dense.h', 'nnet_utils/nnet_dense_compressed.h', 'nnet_utils/nnet_dense_stream.h']
@@ -32,17 +36,24 @@ class DenseConfigTemplate(LayerConfigTemplate):
     def __init__(self):
         super().__init__(Dense)
         self.template = dense_config_template
+        self.merge_template = dense_merge_template
     
     def format(self, node):
         params = self._default_config_params(node)
         params['nzeros'] = node.get_weights('weight').nzeros
         params['nonzeros'] = node.get_weights('weight').nonzeros
         params['product_type'] = get_backend('vivado').product_type(node.get_input_variable().type.precision, node.get_weights('weight').type.precision)
-        params['merged_act'] = "true" if node.get_merged_act() else "false"
         params['out_t'] = node.get_output_variable().type.name
-        params['activation_t'] = node.get_output_variable.get_attr('activation') if node.get_merged_act() else "none"
         
-        return self.template.format(**params)
+        default_config =  self.template.format(**params)
+
+        merge_params = self._default_config_params(node)
+        merge_params['merged_act'] = "true" if node.get_merged_act() else "false"
+        merge_params['activation'] = node.get_output_variable.get_attr('activation').lower() if node.get_merged_act() else "none"
+
+        merge_config = self.merge_template.format(**merge_params)
+
+        return default_config + '\n' + merge_config
 
 class DenseFunctionTemplate(FunctionCallTemplate):
     def __init__(self):
