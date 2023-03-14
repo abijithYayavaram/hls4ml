@@ -35,6 +35,7 @@ def test_activations(activation_function, backend):
     config = hls4ml.utils.config_from_keras_model(model)
     output_dir = str(test_root_path / 'hls4mlprj_keras_api_activations_{}_{}'.format(activation_function.__class__.__name__, backend))
     hls_model = hls4ml.converters.convert_from_keras_model(model, hls_config=config, output_dir=output_dir, backend=backend)
+    hls_model['strategy'] = 'resource'
     hls_model.compile()
     hls_prediction = hls_model.predict(X_input)
 
