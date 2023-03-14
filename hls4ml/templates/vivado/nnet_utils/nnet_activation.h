@@ -859,37 +859,28 @@ void  ternary_tanh(data_T data[CONFIG_T::n_in], res_T res[CONFIG_T::n_in])
 // // *************************************************
 // //       actMerge_or_nop functions
 // // *************************************************
-// template<class data_T, class res_T, typename CONFIG_T>
-// void dense_actMerge_or_nop(CONFIG_T::accum_t acc[CONFIG_T::n_out], res_T  res[CONFIG_T::n_out])
-// {
-//     if  ((CONFIG_T::merged_act)) { // dense and activation are merged
-//         for (int ires = 0; ires < CONFIG_T::n_out; ires++) {
-//             #pragma HLS UNROLL
-//             typename CONFIG_T::out_t act = cast<data_T, typename CONFIG_T::out_t, CONFIG_T>(acc[ires]);
-//             switch (CONFIG_T::activation_type)
-//             {
-//             case /* constant-expression */:
-//                 /* code */
-//                 break;
-            
-//             default:
-//                 break;
-//             }
-//         }
-//     }
-//     else { // dense and activation are not merged
-//         for (int ires = 0; ires < CONFIG_T::n_out; ires++) {
-//             #pragma HLS UNROLL
-//             // why do we use out_t? Can't we just use res_t?
-//             typename CONFIG_T::out_t act = cast<data_T, typename CONFIG_T::out_t, CONFIG_T>(acc[ires]);
-//             // nop
-//             res[ires] = act;
-
-//             //that's it...right?
-//         }
-//     }
-// }
-
+template<class data_T, class res_T, typename CONFIG_T>
+void dense_actMerge_or_nop(CONFIG_T::accum_t acc[CONFIG_T::n_out], res_T  res[CONFIG_T::n_out])
+{
+    if  ((CONFIG_T::merged_act)) { // dense and activation are merged
+        typename CONFIG_T::out_t act[CONFIG_T::n_out];
+        for (int ires = 0; ires < CONFIG_T::n_out; ires++) {
+            #pragma HLS UNROLL
+            act[ires] = cast<data_T, typename CONFIG_T::out_t, CONFIG_T>(acc[ires]);
+        }
+        // doubt: the actual activation (relu or whatever) funtions in activation.h use CONFIG_T::n_in as the size of their arguments
+        CONFIG_T::template activation<CONFIG_T::out_t , res_T, CONFIG_T>(act[[CONFIG_T::n_out]], res[CONFIG_T::n_out]);
+    }
+    else { // dense and activation are not merged
+        for (int ires = 0; ires < CONFIG_T::n_out; ires++) {
+            #pragma HLS UNROLL
+            typename CONFIG_T::out_t act = cast<data_T, typename CONFIG_T::out_t, CONFIG_T>(data[ires]);
+            // nop
+            res[ires] = act;
+        }
+    }
 }
 
+
+}
 #endif

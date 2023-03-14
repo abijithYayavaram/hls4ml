@@ -5,7 +5,7 @@ class MergeAct(OptimizerPass):
     def match(self, node):
         backends = ['VivadoAccelerator', 'Vivado']
         supported_layers = ['Dense'] 	#, 'Conv2D', 'Conv2DBatchNorm'
-        supported_activations = ['relu', 'sigmoid', 'softmax', 'tanh']
+        supported_activations = ['relu']
         # By the time this optimization pass runs, the Layer nodes' class names
         # have been prepended with the name of the backend, e.g., a Conv2D
         # layer is renamed VivadoAcceleratorConv2D. Thus, we strip the backend
@@ -17,8 +17,6 @@ class MergeAct(OptimizerPass):
             curr_node_class = curr_node_class.replace(b, '')
 
         is_match = input_node_class in supported_layers
-        # activation layers are of class Activation
-        # is_match = is_match and (curr_node_class == 'Activation') 
         is_match = is_match and (node.get_attr('activation') in supported_activations)
     
         return is_match
