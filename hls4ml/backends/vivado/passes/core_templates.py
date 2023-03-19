@@ -23,10 +23,10 @@ dense_config_template = """struct config{index} : nnet::dense_config {{
     using product = nnet::product::{product_type}<x_T, y_T>;
 }};\n"""
 
-dense_merge_template = """ static const bool merged_act = {merged_act};
+dense_merge_template = """static const bool merged_act = {merged_act};
     template<class x_T, class y_T, typename CONFIG_T>
     using activation = nnet::{activation}<x_T, y_T, CONFIG_T>;
-\n """
+\n"""
 
 dense_function_template = 'nnet::dense<{input_t}, {output_t}, {config}>({input}, {output}, {w}, {b});'
 
@@ -49,8 +49,8 @@ class DenseConfigTemplate(LayerConfigTemplate):
 
         merge_params = self._default_config_params(node)
         merge_params['merged_act'] = "true" if node.get_merged_act() else "false"
-        merge_params['activation'] = node.get_output_variable.get_attr('activation').lower() if node.get_merged_act() else "none"
-
+        # merge_params['activation'] = node.get_output_nodes()[:].get_attr('activation').lower() if node.get_merged_act() else "none"
+        print("Current node: ", node.get_attr('activation'), "Output node: ", node.get_output_nodes()[0].get_attr('activation'))
         merge_config = self.merge_template.format(**merge_params)
 
         return default_config + '\n' + merge_config

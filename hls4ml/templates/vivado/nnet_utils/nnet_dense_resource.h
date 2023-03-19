@@ -74,7 +74,7 @@ void dense_resource_rf_leq_nin(
             #pragma HLS UNROLL
 
             acc[out_index] += static_cast<typename CONFIG_T::accum_t>(
-              CONFIG_T::template product<data_T, typename CONFIG_T::weight_t>::product(data[in_index], weights[w_index]));
+              typename CONFIG_T::template product<data_T, typename CONFIG_T::weight_t>::product(data[in_index], weights[w_index]));
 
             // Increment w_index
             w_index += rufactor;
@@ -95,7 +95,7 @@ void dense_resource_rf_leq_nin(
 
     // Cast to "res_t" type
     Result:
-    nnet::dense_actMerge_or_nop<data_T, res_T, CONFIG_T> (CONFIG_T::accum_t acc[CONFIG_T::n_out], res_T  res[CONFIG_T::n_out]);
+    nnet::dense_actMerge_or_nop<data_T, res_T, CONFIG_T> (typename CONFIG_T::accum_t acc[CONFIG_T::n_out], res_T  res[CONFIG_T::n_out]);
 }
 
 template<class data_T, class res_T, typename CONFIG_T>
@@ -156,7 +156,7 @@ void dense_resource_rf_gt_nin_rem0(
         for (int im = 0; im < block_factor; im++) {
             #pragma HLS UNROLL
             acc[out_index] += static_cast<typename CONFIG_T::accum_t>(
-              CONFIG_T::template product<data_T, typename CONFIG_T::weight_t>::product(data[in_index], weights[w_index]));
+              typename CONFIG_T::template product<data_T, typename CONFIG_T::weight_t>::product(data[in_index], weights[w_index]));
 
             w_index += rufactor;
             if (w_index >= CONFIG_T::n_in * CONFIG_T::n_out) break; // check out of bounds
@@ -172,7 +172,7 @@ void dense_resource_rf_gt_nin_rem0(
 
     // Cast to "res_t" type
     Result:
-    nnet::dense_actMerge_or_nop<data_T, res_T, CONFIG_T> (CONFIG_T::accum_t acc[CONFIG_T::n_out], res_T  res[CONFIG_T::n_out]);
+    nnet::dense_actMerge_or_nop<data_T, res_T, CONFIG_T> (typename CONFIG_T::accum_t acc[CONFIG_T::n_out], res_T  res[CONFIG_T::n_out]);
 
 }
 
@@ -252,7 +252,7 @@ void dense_resource_rf_gt_nin(
 
     // Cast to "res_t" type
     Result:
-    nnet::dense_actMerge_or_nop<data_T, res_T, CONFIG_T> (CONFIG_T::accum_t acc[CONFIG_T::n_out], res_T  res[CONFIG_T::n_out]);
+    nnet::dense_actMerge_or_nop<data_T, res_T, CONFIG_T> (typename CONFIG_T::accum_t acc[CONFIG_T::n_out], res_T  res[CONFIG_T::n_out]);
 
 }
 
